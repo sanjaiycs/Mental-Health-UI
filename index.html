@@ -1,0 +1,1178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MindBloom — Improved Prototype</title>
+  <style>
+    :root{
+      --primary: #5EBC89;
+      --primary-dark: #4AA076;
+      --secondary: #7AA6F4;
+      --accent: #F9B84C;
+      --danger: #E44D3A;
+      --danger-light: rgba(228, 77, 58, 0.08);
+      --bg: #F8FAFB;
+      --surface:#FFFFFF;
+      --text: #222B45;
+      --muted: #6B7280;
+      --muted-2: #9CA3AF;
+      --border: rgba(34,43,69,0.06);
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --shadow: 0 6px 18px rgba(34,43,69,0.08);
+      --card-shadow: 0 8px 30px rgba(34,43,69,0.07);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+    .phone { 
+      width:375px; 
+      height:812px; 
+      border-radius:28px; 
+      background:linear-gradient(180deg,#fff,#fbfffd); 
+      box-shadow: 0 20px 60px rgba(10,20,30,0.12); 
+      overflow:hidden; 
+      display:grid; 
+      grid-template-rows:1fr; 
+      position:relative;
+    }
+    header.appbar{ 
+      height:64px; 
+      display:flex; 
+      align-items:center; 
+      gap:12px; 
+      padding:12px 16px; 
+      background:var(--surface);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      position: relative;
+      z-index: 10;
+    }
+    .safe { padding:16px; }
+
+    .screen { 
+      width:100%; 
+      height:100%; 
+      position:absolute; 
+      top:0; 
+      left:0; 
+      transform:translateX(100%); 
+      transition:transform .32s cubic-bezier(.2,.9,.3,1); 
+      display:flex; 
+      flex-direction:column; 
+      background:var(--bg);
+      overflow: hidden;
+    }
+    .screen.active{ transform:translateX(0); }
+
+    .onboard { 
+      display:flex; 
+      flex-direction:column; 
+      align-items:center; 
+      justify-content:space-between; 
+      padding:32px 24px; 
+      height:100%; 
+      background: var(--bg);
+    }
+    .illus { 
+      width:260px; 
+      height:240px; 
+      background:linear-gradient(135deg, rgba(94,188,137,0.12), rgba(122,166,244,0.08)); 
+      border-radius:20px; 
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+      font-size:42px; 
+      color:var(--primary); 
+      box-shadow:var(--card-shadow); 
+    }
+    .title{ font-size:22px; font-weight:600; margin-top:8px; }
+    .subtitle{ color:var(--muted); font-size:14px; text-align:center; margin-top:10px; line-height: 1.5; }
+    .btn{ 
+      background:var(--primary); 
+      color:white; 
+      border:none; 
+      padding:14px 18px; 
+      border-radius:12px; 
+      width:100%; 
+      font-weight:600; 
+      font-size:15px; 
+      box-shadow:var(--shadow); 
+      cursor:pointer; 
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+    .btn:disabled {
+      background: var(--muted-2);
+      cursor: not-allowed;
+      transform: none;
+    }
+    .ghost{ 
+      background:transparent; 
+      border:1px solid var(--border); 
+      color:var(--text); 
+    }
+
+    .home { 
+      padding:16px; 
+      overflow:auto; 
+      flex: 1;
+    }
+    .greet{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 16px; }
+    .greet h2{ margin:0; font-size:18px; font-weight:600; }
+    .greet p{ margin:0; color:var(--muted); font-size:13px; }
+    .mood-chips { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+    .chip { 
+      background:linear-gradient(180deg,#fff, rgba(94,188,137,0.04)); 
+      border-radius:30px; 
+      padding:10px 14px; 
+      font-weight:600; 
+      font-size:13px; 
+      border:1px solid var(--border); 
+      cursor:pointer; 
+      transition: all 0.2s ease;
+    }
+    .chip:hover {
+      border-color: var(--primary);
+      background: rgba(94,188,137,0.08);
+    }
+    .chip.selected {
+      background: rgba(94,188,137,0.12);
+      border-color: var(--primary);
+    }
+    .quick-cards { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:20px; }
+    .card { 
+      background:var(--surface); 
+      padding:14px; 
+      border-radius:14px; 
+      box-shadow:var(--card-shadow); 
+      min-height:92px; 
+      display:flex; 
+      flex-direction:column; 
+      justify-content:space-between; 
+      cursor:pointer; 
+      transition: all 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(34,43,69,0.1);
+    }
+    .card h3{ margin:0; font-size:15px; }
+    .card p{ margin:0; color:var(--muted); font-size:12px; line-height: 1.4; }
+
+    .status-pill { 
+      padding:6px 10px; 
+      border-radius:999px; 
+      font-weight:700; 
+      font-size:12px; 
+      display:inline-block; 
+    }
+
+    .chat { display:flex; flex-direction:column; height:100%; }
+    .chat-body{ 
+      padding:16px; 
+      overflow:auto; 
+      flex:1; 
+      display:flex; 
+      flex-direction:column; 
+      gap:12px; 
+      background: var(--bg);
+    }
+    .bubble { 
+      max-width:78%; 
+      padding:12px 14px; 
+      border-radius:14px; 
+      box-shadow:var(--shadow); 
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .bot { 
+      background:linear-gradient(180deg,#ffffff,#f2fff7); 
+      align-self:flex-start; 
+      border:1px solid rgba(94,188,137,0.08); 
+    }
+    .user { 
+      background:linear-gradient(180deg,#e9f7f1,#d7f0e6); 
+      align-self:flex-end; 
+      border:1px solid rgba(34,43,69,0.04); 
+    }
+    .chat-controls { 
+      padding:12px; 
+      display:flex; 
+      gap:10px; 
+      align-items:center; 
+      border-top:1px solid var(--border); 
+      background:var(--surface);
+    }
+    .chat-input{ 
+      flex:1; 
+      padding:10px 12px; 
+      border-radius:12px; 
+      border:1px solid var(--border); 
+      background:white; 
+      font-family: inherit;
+      font-size: 14px;
+    }
+    .small-btn { 
+      background:transparent; 
+      border:1px solid var(--border); 
+      padding:8px 10px; 
+      border-radius:10px; 
+      cursor:pointer; 
+      transition: all 0.2s ease;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .small-btn:hover {
+      background: rgba(94,188,137,0.08);
+      border-color: var(--primary);
+    }
+
+    .screening { padding:16px; overflow:auto; flex: 1; }
+    .question { background:var(--surface); padding:18px; border-radius:12px; box-shadow:var(--card-shadow); margin-bottom:14px; }
+    .options { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+    .option { 
+      padding:10px 12px; 
+      border-radius:10px; 
+      border:1px solid var(--border); 
+      cursor:pointer; 
+      background:white; 
+      transition: all 0.2s ease;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .option:hover {
+      border-color: var(--primary);
+    }
+    .option.selected {
+      background: rgba(94,188,137,0.12);
+      border-color: var(--primary);
+    }
+    .progress-bar { 
+      height:8px; 
+      background:linear-gradient(90deg, rgba(94,188,137,0.12), rgba(122,166,244,0.08)); 
+      border-radius:8px; 
+      overflow:hidden; 
+      margin-bottom:12px; 
+    }
+    .progress { height:100%; background:linear-gradient(90deg,var(--primary),var(--secondary)); width:0%; transition:width .28s ease; }
+
+    .booking{ padding:16px; overflow:auto; flex: 1; }
+    .counsellor { 
+      display:flex; 
+      gap:12px; 
+      align-items:center; 
+      background:var(--surface); 
+      padding:12px; 
+      border-radius:12px; 
+      box-shadow:var(--card-shadow); 
+      margin-bottom:10px; 
+      cursor:pointer; 
+      transition: all 0.2s ease;
+    }
+    .counsellor:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(34,43,69,0.1);
+    }
+    .counsellor.selected {
+      outline: 2px solid var(--primary);
+    }
+    .avatar { 
+      width:56px; 
+      height:56px; 
+      border-radius:12px; 
+      background:linear-gradient(135deg,var(--primary), #eafbf3); 
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+      font-weight:700; 
+      color:white; 
+    }
+    .slots { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .slot { 
+      padding:8px 10px; 
+      border-radius:10px; 
+      border:1px solid var(--border); 
+      cursor:pointer; 
+      background:white; 
+      transition: all 0.2s ease;
+      font-size: 13px;
+    }
+    .slot:hover {
+      border-color: var(--primary);
+    }
+    .slot.selected {
+      background: rgba(94,188,137,0.12);
+      border-color: var(--primary);
+    }
+    .alias-box { display:flex; gap:8px; align-items:center; margin-top:12px; }
+    .alias { 
+      flex:1; 
+      padding:10px; 
+      border-radius:10px; 
+      border:1px solid var(--border); 
+      font-family: inherit;
+    }
+
+    .resources { padding:16px; overflow:auto; flex: 1; }
+    .resource-card { 
+      display:flex; 
+      gap:12px; 
+      align-items:center; 
+      background:var(--surface); 
+      padding:12px; 
+      border-radius:12px; 
+      box-shadow:var(--card-shadow); 
+      margin-bottom:12px; 
+      transition: all 0.2s ease;
+    }
+    .resource-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(34,43,69,0.1);
+    }
+    .thumb { 
+      width:72px; 
+      height:56px; 
+      border-radius:8px; 
+      background:linear-gradient(135deg,var(--secondary), #eaf1ff); 
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+      color:white; 
+      font-weight:700; 
+    }
+
+    footer.small { padding:12px; color:var(--muted); text-align:center; font-size:12px; }
+    .row { display:flex; gap:8px; align-items:center; }
+    .muted { color:var(--muted); font-size:13px; }
+    .center { text-align:center; }
+    .hidden{ display:none; }
+    .error { color: var(--danger); font-size: 12px; margin-top: 4px; }
+    
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      font-size: 14px;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(94,188,137,0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone" role="application" aria-label="MindBloom mental health app prototype">
+    <!-- Toast notification -->
+    <div id="toast" class="toast" aria-live="polite"></div>
+    
+    <!-- Onboarding -->
+    <section id="onboarding" class="screen active">
+      <div class="onboard">
+        <div style="margin-top:14px; width:100%; display:flex; justify-content:space-between;">
+          <div style="font-weight:700; font-size:14px; color:var(--muted);">MindBloom</div>
+          <div style="font-size:12px; color:var(--muted);">Sentiment demo</div>
+        </div>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+          <div class="illus">🌿</div>
+          <div style="margin-top:18px; text-align:center;">
+            <div class="title">Welcome to MindBloom</div>
+            <div class="subtitle">Private, culturally aware mental health support built for students.</div>
+          </div>
+        </div>
+        <div style="width:100%;">
+          <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:8px;">Language</label>
+          <select id="langSelect" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-bottom:12px; font-family: inherit;">
+            <option>English</option>
+            <option>Hindi</option>
+            <option>Tamil</option>
+          </select>
+          <label style="display:flex; gap:8px; align-items:center; margin-bottom:12px; font-size:13px; color:var(--muted);">
+            <input type="checkbox" id="consent" /> I understand this is not a replacement for professional care
+          </label>
+          <div id="consentError" class="error hidden">Please accept this to continue</div>
+          <button class="btn" id="startBtn" aria-label="Get started">Get Started</button>
+          <div style="height:12px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Home -->
+    <section id="home" class="screen">
+      <header class="appbar">
+        <div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:var(--surface); box-shadow:var(--card-shadow);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 4.25 4.5 9.25 6.06 11.01a1 1 0 0 0 1.48 0C14.5 18.25 19 13.25 19 9c0-3.87-3.13-7-7-7z" stroke="#5EBC89" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div style="flex:1; display:flex; justify-content:center;">
+          <div style="font-weight:700;">MindBloom</div>
+        </div>
+        <div style="width:44px; display:flex; align-items:center; justify-content:center;">
+          <div id="moodBadge" class="status-pill" style="background:rgba(94,188,137,0.12); color:var(--primary);">Mood: —</div>
+        </div>
+      </header>
+
+      <div class="home">
+        <div class="greet">
+          <div class="left">
+            <h2>Hi Sanjaiy 👋</h2>
+            <p class="muted">How are you feeling today?</p>
+          </div>
+          <div style="width:54px; text-align:right;">
+            <div style="font-size:12px; color:var(--muted);">Alias</div>
+            <div style="font-weight:700; color:var(--primary);">LotusFox</div>
+          </div>
+        </div>
+
+        <div class="mood-chips" role="list">
+          <button class="chip" onclick="quickMood('happy')" aria-label="I'm feeling happy">😊 Happy</button>
+          <button class="chip" onclick="quickMood('stressed')" aria-label="I'm feeling stressed">😰 Stressed</button>
+          <button class="chip" onclick="quickMood('anxious')" aria-label="I'm feeling anxious">😟 Anxious</button>
+          <button class="chip" onclick="quickMood('sleepy')" aria-label="I'm feeling sleepy">😴 Sleepy</button>
+        </div>
+
+        <div class="quick-cards" style="margin-top:18px;">
+          <div class="card" id="openChat" role="button" tabindex="0" aria-label="Open AI First-Aid chat">
+            <h3>AI First-Aid</h3>
+            <p>Talk with a helpful bot for coping strategies & quick screens.</p>
+            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+              <button class="small-btn" onclick="go('chat')">Open</button>
+            </div>
+          </div>
+
+          <div class="card" id="openBooking" role="button" tabindex="0" aria-label="Book a counsellor appointment">
+            <h3>Book Counsellor</h3>
+            <p>Private appointment slots with campus counsellors.</p>
+            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+              <button class="small-btn" onclick="initCounsellors();go('booking')">Book</button>
+            </div>
+          </div>
+
+          <div class="card" id="openResources" style="grid-column:1/-1;" role="button" tabindex="0" aria-label="Open mental health resources">
+            <h3>Resources</h3>
+            <p>Short videos, audios & guides for common student issues.</p>
+            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+              <button class="small-btn" onclick="renderResources();go('resources')">Open</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1"></div>
+        <footer class="small">Your data is anonymous by default • For emergencies call campus helpline</footer>
+      </div>
+    </section>
+
+    <!-- Chat -->
+    <section id="chat" class="screen">
+      <header class="appbar">
+        <button onclick="go('home')" style="background:transparent;border:none;cursor:pointer;padding:8px;" aria-label="Go back">←</button>
+        <div style="flex:1; text-align:center; font-weight:700;">AI Support</div>
+        <div style="width:44px;"></div>
+      </header>
+
+      <div class="chat">
+        <div class="chat-body" id="chatBody" role="log" aria-live="polite">
+          <div class="bubble bot">
+            <div style="font-weight:600; margin-bottom:6px;">MindBloom</div>
+            <div class="muted">Hi — I'm here to listen. Want a quick check-in?</div>
+            <div style="margin-top:8px; display:flex; gap:8px; flex-wrap: wrap;">
+              <button class="small-btn" onclick="sendUser('I am stressed')">I am stressed</button>
+              <button class="small-btn" onclick="sendUser('Can\'t sleep')">Can't sleep</button>
+              <button class="small-btn" onclick="startScreening()">Take screening</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-controls">
+          <input id="chatInput" class="chat-input" placeholder="Type a message..." aria-label="Chat input" />
+          <button class="small-btn" onclick="sendUserFromInput()" aria-label="Send message">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screening -->
+    <section id="screening" class="screen">
+      <header class="appbar">
+        <button onclick="go('chat')" style="background:transparent;border:none;cursor:pointer;padding:8px;" aria-label="Go back">←</button>
+        <div style="flex:1; text-align:center; font-weight:700;">Quick Screen</div>
+        <div style="width:44px;"></div>
+      </header>
+
+      <div class="screening">
+        <div class="progress-bar" aria-hidden><div id="progress" class="progress"></div></div>
+        <div id="questionContainer"></div>
+        <button class="btn" id="nextQ" style="margin-top:12px;" onclick="nextQuestion()">Next</button>
+        <div style="height:8px"></div>
+        <div class="muted">This is a quick screening and not a diagnosis. For emergencies call campus helpline.</div>
+      </div>
+    </section>
+
+    <!-- Booking -->
+    <section id="booking" class="screen">
+      <header class="appbar">
+        <button onclick="go('home')" style="background:transparent;border:none;cursor:pointer;padding:8px;" aria-label="Go back">←</button>
+        <div style="flex:1; text-align:center; font-weight:700;">Book Counsellor</div>
+        <div style="width:44px;"></div>
+      </header>
+
+      <div class="booking">
+        <div id="counsellorList"></div>
+        <div style="height:12px"></div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">Selected slot</div>
+        <div id="selectedSlot" class="muted">None selected</div>
+        <div class="alias-box" style="margin-top:14px;">
+          <input id="aliasInput" class="alias" placeholder="Pick an alias (e.g., LotusFox)" />
+          <button class="small-btn" id="genAlias">Generate</button>
+        </div>
+        <div id="aliasError" class="error hidden">Please enter an alias</div>
+        <button class="btn" id="confirmBookingBtn" style="margin-top:16px;" onclick="confirmBooking()">Confirm Booking</button>
+        <div id="bookingSuccess" class="hidden center" style="margin-top:12px;">
+          <div style="font-weight:700; color:var(--primary);">Booked ✅</div>
+          <div class="muted">Your appointment is confirmed. Counsellor will see your alias only if you consent.</div>
+          <div style="height:8px"></div>
+          <button class="small-btn" onclick="go('home')">Back to Home</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resources -->
+    <section id="resources" class="screen">
+      <header class="appbar">
+        <button onclick="go('home')" style="background:transparent;border:none;cursor:pointer;padding:8px;" aria-label="Go back">←</button>
+        <div style="flex:1; text-align:center; font-weight:700;">Resources</div>
+        <div style="width:44px;"></div>
+      </header>
+
+      <div class="resources">
+        <div style="margin-bottom:8px;">
+          <label style="font-size:13px; color:var(--muted)">Filter by language</label>
+          <div style="display:flex; gap:8px; margin-top:8px; flex-wrap: wrap;">
+            <button class="chip selected" onclick="filterResources('All')">All</button>
+            <button class="chip" onclick="filterResources('English')">English</button>
+            <button class="chip" onclick="filterResources('Hindi')">Hindi</button>
+          </div>
+        </div>
+
+        <div id="resourcesList"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    /* ---------- Basic navigation ---------- */
+    const screens = ['onboarding','home','chat','screening','booking','resources'];
+    function go(id){
+      screens.forEach(s => document.getElementById(s).classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      if(id === 'chat') {
+        setTimeout(() => {
+          document.getElementById('chatInput').focus();
+        }, 300);
+      }
+    }
+    
+    document.getElementById('startBtn').addEventListener('click', ()=> {
+      if(!document.getElementById('consent').checked){ 
+        document.getElementById('consentError').classList.remove('hidden');
+        showToast('Please accept the privacy note to continue');
+        return; 
+      }
+      document.getElementById('consentError').classList.add('hidden');
+      go('home');
+    });
+    
+    // Make cards clickable
+    document.getElementById('openChat').addEventListener('click', ()=> go('chat'));
+    document.getElementById('openBooking').addEventListener('click', ()=> { initCounsellors(); go('booking'); });
+    document.getElementById('openResources').addEventListener('click', ()=> { renderResources(); go('resources'); });
+    
+    // Add keyboard support for cards
+    ['openChat', 'openBooking', 'openResources'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          document.getElementById(id).click();
+        }
+      });
+    });
+
+    /* ---------- Toast notification ---------- */
+    function showToast(message, duration = 3000) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, duration);
+    }
+
+    /* ---------- Sentiment & Stress Analyzer (local lexicon) ---------- */
+    // Small lexicon approach for demo. Not clinical.
+    const lexicon = {
+      positive: ['good','happy','well','great','fine','relaxed','okay','ok','better','calm','awesome','thankful','grateful','hopeful'],
+      negative: ['sad','depressed','down','unhappy','bad','angry','upset','miserable','lonely','hopeless','gloomy'],
+      stress: ['stressed','stress','anxious','anxiety','overwhelmed','overwhelm','panic','panic attack','burnout','tired','exhausted','pressure','worried','worry'],
+      suicide: ['suicide','kill myself','end my life','want to die','suicidal']
+    };
+    const emojiMap = {
+      '😊': 1, '🙂': 1, '😃':1, '😄':1, '😁':1,
+      '😞': -1, '😟': -1, '😢': -1, '😭': -1, '😰': -1, '😩': -1, '😫': -1
+    };
+
+    function analyzeSentiment(text){
+      // normalize
+      const original = (text||'').toString();
+      const lower = original.toLowerCase();
+      let score = 0;
+      // emojis
+      for(const e of Object.keys(emojiMap)){
+        if(original.includes(e)) score += emojiMap[e] * 2;
+      }
+      // words
+      const words = lower.split(/[^a-z0-9]+/).filter(Boolean);
+      words.forEach(w=>{
+        if(lexicon.positive.includes(w)) score += 1;
+        if(lexicon.negative.includes(w)) score -= 1;
+        if(lexicon.stress.includes(w)) score -= 1.5;
+        if(lexicon.suicide.includes(w)) score -= 4;
+      });
+      // heuristic: longer messages with many negatives amplify score
+      if(words.length > 12){
+        score *= 1.1;
+      }
+      // compute polarity
+      let polarity = 'neutral';
+      if(score >= 2) polarity = 'positive';
+      else if(score <= -2) polarity = 'negative';
+      else polarity = 'neutral';
+      // mood mapping
+      let mood = 'Neutral';
+      if(polarity === 'positive') mood = 'Happy';
+      if(polarity === 'negative'){
+        // check stress words presence
+        const hasStress = words.some(w => lexicon.stress.includes(w));
+        mood = hasStress ? 'Anxious' : 'Sad';
+      }
+      // stress level mapping
+      let stressLevel = 'Low';
+      const stressHits = words.filter(w=>lexicon.stress.includes(w)).length;
+      const suicidalHits = words.filter(w=>lexicon.suicide.includes(w)).length;
+      if(suicidalHits > 0) stressLevel = 'Very High';
+      else if(stressHits >= 2 || score <= -4) stressLevel = 'High';
+      else if(stressHits === 1 || score <= -2) stressLevel = 'Medium';
+      else stressLevel = 'Low';
+
+      // confidence (simple heuristic)
+      let confidence = Math.min(0.95, Math.max(0.4, Math.abs(score) / 6));
+      return {score, polarity, mood, stressLevel, confidence, original};
+    }
+
+    /* ---------- Chat interactions with sentiment ---------- */
+    function appendBot(text, actions = []) {
+      const c = document.getElementById('chatBody');
+      const el = document.createElement('div'); 
+      el.className = 'bubble bot';
+      el.innerHTML = `<div style="font-weight:600; margin-bottom:6px;">MindBloom</div><div class="muted">${escapeHtml(text)}</div>`;
+      
+      if(actions.length){
+        const box = document.createElement('div'); 
+        box.style.marginTop='8px'; 
+        box.style.display='flex'; 
+        box.style.gap='8px'; 
+        box.style.flexWrap = 'wrap';
+        
+        actions.forEach(a=>{
+          const btn = document.createElement('button'); 
+          btn.className='small-btn'; 
+          btn.textContent=a.label;
+          btn.addEventListener('click', a.onClick);
+          box.appendChild(btn);
+        });
+        el.appendChild(box);
+      }
+      c.appendChild(el); 
+      c.scrollTop = c.scrollHeight;
+    }
+    
+    function appendUser(text, meta = null) {
+      const c = document.getElementById('chatBody');
+      const el = document.createElement('div'); 
+      el.className = 'bubble user';
+      el.innerHTML = `${escapeHtml(text)}${meta ? `<div style="margin-top:6px;font-size:12px;color:var(--muted)">${escapeHtml(meta)}</div>`: ''}`;
+      c.appendChild(el); 
+      c.scrollTop = c.scrollHeight;
+    }
+
+    function sendUser(msg){
+      const analysis = analyzeSentiment(msg);
+      const meta = `Detected: ${analysis.mood} • Stress: ${analysis.stressLevel}`;
+      appendUser(msg, meta);
+      updateMoodBadge(analysis); // update home badge with latest mood
+      
+      // Show typing indicator
+      const typingIndicator = document.createElement('div');
+      typingIndicator.className = 'bubble bot';
+      typingIndicator.innerHTML = `<div style="display:flex; align-items:center; gap:8px;"><span class="spinner"></span> MindBloom is typing...</div>`;
+      document.getElementById('chatBody').appendChild(typingIndicator);
+      document.getElementById('chatBody').scrollTop = document.getElementById('chatBody').scrollHeight;
+      
+      // Bot response tailored to stress level
+      setTimeout(()=> {
+        typingIndicator.remove();
+        
+        if(analysis.stressLevel === 'Very High'){
+          appendBot("I detect very high distress. If you're thinking of harming yourself, please contact emergency help now. Would you like to call the campus helpline or book a counsellor?", [
+            {label:'Call Helpline', onClick: ()=> alert('Dial campus helpline: +91-XXXX-XXXX')},
+            {label:'Book counsellor', onClick: ()=> { initCounsellors(); go('booking'); }}
+          ]);
+        } else if(analysis.stressLevel === 'High'){
+          appendBot("I sense significant stress. I recommend a quick screening and some breathing exercises. Want to start a short breathing activity or take a screening?", [
+            {label:'Breathing', onClick: ()=> showBreathing()},
+            {label:'Screening', onClick: ()=> { initScreening(); go('screening'); }}
+          ]);
+        } else if(analysis.stressLevel === 'Medium'){
+          appendBot("Thanks for sharing. A short breathing exercise might help. Or we can do a quick screening. What would you like?", [
+            {label:'Breathing', onClick: ()=> showBreathing()},
+            {label:'Screening', onClick: ()=> { initScreening(); go('screening'); }}
+          ]);
+        } else {
+          appendBot("Thanks for telling me. If you'd like, I can share quick coping tips or a short exercise.", [
+            {label:'Coping Tips', onClick: ()=> appendBot("Try this: 4-4-4 breathing — inhale 4s, hold 4s, exhale 4s. Repeat 4 times.")},
+            {label:'Screening', onClick: ()=> { initScreening(); go('screening'); }}
+          ]);
+        }
+      }, 1500);
+    }
+
+    function sendUserFromInput(){
+      const v = document.getElementById('chatInput').value.trim();
+      if(!v) {
+        showToast('Please type a message');
+        return;
+      }
+      document.getElementById('chatInput').value='';
+      sendUser(v);
+    }
+
+    function startScreening(){ initScreening(); go('screening'); }
+
+    /* ---------- Home quick mood buttons integrate with analyzer ---------- */
+    function quickMood(tag){
+      let message = '';
+      if(tag === 'happy') message = 'I am feeling good and relaxed 🙂';
+      if(tag === 'stressed') message = 'I feel very stressed and overwhelmed';
+      if(tag === 'anxious') message = 'I am anxious and worried about exams';
+      if(tag === 'sleepy') message = 'I am having trouble sleeping and feel tired';
+      
+      // Visual feedback
+      const chips = document.querySelectorAll('.chip');
+      chips.forEach(chip => chip.classList.remove('selected'));
+      event.target.classList.add('selected');
+      
+      // send to chat pipeline so we get suggestions
+      go('chat');
+      setTimeout(()=> sendUser(message), 200);
+    }
+
+    function updateMoodBadge(analysis){
+      const badge = document.getElementById('moodBadge');
+      badge.textContent = `Mood: ${analysis.mood}`;
+      // color coding
+      if(analysis.stressLevel === 'Very High' || analysis.stressLevel === 'High'){
+        badge.style.background = 'var(--danger-light)';
+        badge.style.color = 'var(--danger)';
+      } else if(analysis.mood === 'Happy'){
+        badge.style.background = 'rgba(94,188,137,0.12)';
+        badge.style.color = 'var(--primary)';
+      } else {
+        badge.style.background = 'rgba(122,166,244,0.08)';
+        badge.style.color = 'var(--secondary)';
+      }
+    }
+
+    /* ---------- Screening logic (short 5 q) ---------- */
+    const screeningQs = [
+      "Little interest or pleasure in doing things",
+      "Feeling down, depressed, or hopeless",
+      "Trouble falling or staying asleep, or sleeping too much",
+      "Feeling nervous, anxious or on edge",
+      "Not being able to stop or control worrying"
+    ];
+    let answers = [];
+    let qIndex = 0;
+    
+    function initScreening(){
+      answers = Array(screeningQs.length).fill(null);
+      qIndex = 0;
+      renderQuestion();
+      updateProgress();
+    }
+    
+    function renderQuestion(){
+      const container = document.getElementById('questionContainer');
+      container.innerHTML = '';
+      const q = screeningQs[qIndex];
+      const qEl = document.createElement('div'); 
+      qEl.className='question';
+      qEl.innerHTML = `<div style="font-weight:600">${qIndex+1}. ${escapeHtml(q)}</div><div class="muted" style="font-size:12px;margin-top:6px;">Select how often you've been bothered by this over the last 2 weeks</div>`;
+      
+      const opts = document.createElement('div'); 
+      opts.className='options';
+      const labels = ['Not at all (0)','Several days (1)','More than half the days (2)','Nearly every day (3)'];
+      
+      labels.forEach((lab,i)=>{
+        const b = document.createElement('button'); 
+        b.className='option'; 
+        b.textContent=lab;
+        if(answers[qIndex] === i) b.classList.add('selected');
+        b.addEventListener('click', ()=> {
+          answers[qIndex] = i;
+          renderQuestion();
+          updateProgress();
+        });
+        opts.appendChild(b);
+      });
+      
+      qEl.appendChild(opts);
+      container.appendChild(qEl);
+      
+      const nav = document.createElement('div'); 
+      nav.style.display='flex'; 
+      nav.style.gap='8px'; 
+      nav.style.marginTop='8px';
+      
+      const prev = document.createElement('button'); 
+      prev.className='small-btn'; 
+      prev.textContent='Previous'; 
+      prev.disabled = qIndex===0;
+      prev.addEventListener('click', ()=> { 
+        if(qIndex>0){ 
+          qIndex--; 
+          renderQuestion(); 
+          updateProgress(); 
+        }
+      });
+      
+      const skip = document.createElement('button'); 
+      skip.className='small-btn'; 
+      skip.textContent='Skip';
+      skip.addEventListener('click', ()=> { 
+        answers[qIndex]=0; 
+        if(qIndex<screeningQs.length-1){ 
+          qIndex++; 
+          renderQuestion(); 
+          updateProgress(); 
+        } else finishScreening();
+      });
+      
+      nav.appendChild(prev); 
+      nav.appendChild(skip);
+      container.appendChild(nav);
+      
+      // Update next button text for last question
+      document.getElementById('nextQ').textContent = 
+        qIndex === screeningQs.length - 1 ? 'Finish' : 'Next';
+    }
+    
+    function nextQuestion(){
+      if (answers[qIndex] === null) {
+        showToast('Please select an answer to continue');
+        return;
+      }
+      
+      if(qIndex < screeningQs.length - 1){ 
+        qIndex++; 
+        renderQuestion(); 
+        updateProgress(); 
+      } else finishScreening();
+    }
+    
+    function updateProgress(){ 
+      const answered = answers.filter(a=>a!==null).length; 
+      const pct = Math.round((answered / screeningQs.length) * 100); 
+      document.getElementById('progress').style.width = pct + '%'; 
+    }
+    
+    function finishScreening(){
+      const score = answers.reduce((s,a)=> s + (a!==null ? a : 0), 0);
+      let severity = 'Minimal / None';
+      if(score >= 8 && score < 12) severity = 'Mild';
+      if(score >= 12 && score < 16) severity = 'Moderate';
+      if(score >= 16) severity = 'Severe';
+      
+      go('chat');
+      appendBot(`You completed a quick screen. Score: ${score} — ${severity}.`, [
+        {label:'Book counsellor', onClick: ()=> { initCounsellors(); go('booking'); } }
+      ]);
+      
+      // If screening severity is high, update mood badge and show urgent suggestion
+      if(severity === 'Severe' || severity === 'Moderate'){
+        updateMoodBadge({mood:'Anxious', stressLevel: 'High'});
+        appendBot("Because your score suggests moderate-to-high severity, I strongly recommend booking a counsellor or calling the helpline.", [
+          {label:'Book counsellor', onClick: ()=> { initCounsellors(); go('booking'); } }
+        ]);
+      }
+    }
+
+    /* ---------- Booking ---------- */
+    const counsellors = [
+      {id:1,name:'Dr. MindBloom', spec:'Student Counsellor', slots:['10:00 AM','2:00 PM','4:00 PM']},
+      {id:2,name:'Dr. Meera', spec:'Clinical Psychologist', slots:['11:00 AM','3:00 PM']},
+      {id:3,name:'Dr. Rajesh', spec:'Counsellor (Online)', slots:['9:00 AM','1:00 PM','5:00 PM']}
+    ];
+    let selectedCounsellor = null;
+    let selectedSlot = null;
+
+    function initCounsellors(){
+      const list = document.getElementById('counsellorList');
+      list.innerHTML = '';
+      
+      counsellors.forEach(c => {
+        const el = document.createElement('div'); 
+        el.className='counsellor';
+        if (selectedCounsellor && selectedCounsellor.id === c.id) {
+          el.classList.add('selected');
+        }
+        
+        el.innerHTML = `
+          <div class="avatar">${c.name.split(' ').map(n=>n[0]).slice(0,2).join('')}</div>
+          <div style="flex:1">
+            <div style="font-weight:700">${escapeHtml(c.name)}</div>
+            <div class="muted" style="font-size:13px;">${escapeHtml(c.spec)}</div>
+            <div class="slots"></div>
+          </div>
+        `;
+        
+        const slotsContainer = el.querySelector('.slots');
+        c.slots.forEach(s => {
+          const sbtn = document.createElement('button'); 
+          sbtn.className='slot'; 
+          sbtn.textContent=s;
+          
+          if (selectedCounsellor && selectedCounsellor.id === c.id && selectedSlot === s) {
+            sbtn.classList.add('selected');
+          }
+          
+          sbtn.addEventListener('click', ()=> {
+            selectedCounsellor = c;
+            selectedSlot = s;
+            
+            // Update UI to show selection
+            document.querySelectorAll('.counsellor').forEach(node => node.classList.remove('selected'));
+            document.querySelectorAll('.slot').forEach(node => node.classList.remove('selected'));
+            
+            el.classList.add('selected');
+            sbtn.classList.add('selected');
+            
+            document.getElementById('selectedSlot').textContent = `${c.name} — ${s}`;
+          });
+          
+          slotsContainer.appendChild(sbtn);
+        });
+        
+        list.appendChild(el);
+      });
+    }
+
+    document.getElementById('genAlias').addEventListener('click', ()=> {
+      const alias = randomAlias();
+      document.getElementById('aliasInput').value = alias;
+    });
+
+    function confirmBooking(){
+      const alias = document.getElementById('aliasInput').value.trim();
+      if(!selectedCounsellor || !selectedSlot){
+        showToast('Please select a counsellor and time slot');
+        return;
+      }
+      if(!alias){
+        document.getElementById('aliasError').classList.remove('hidden');
+        showToast('Please enter an alias to continue');
+        return;
+      }
+      
+      document.getElementById('aliasError').classList.add('hidden');
+      document.getElementById('confirmBookingBtn').classList.add('hidden');
+      document.getElementById('bookingSuccess').classList.remove('hidden');
+    }
+
+    function randomAlias(){ 
+      const words = ['Lotus','Fern','Nimbus','Quiet','Echo','Aurora','Meadow','Willow','Cedar','Breeze']; 
+      const w1 = words[Math.floor(Math.random()*words.length)]; 
+      const w2 = Math.floor(Math.random()*900 + 100); 
+      return `${w1}${w2}`; 
+    }
+
+    /* ---------- Resources ---------- */
+    const resources = [
+      {id:1, title:'2-min Breathing Exercise', type:'Audio', lang:'English'},
+      {id:2, title:'Study-time Sleep Tips', type:'Guide', lang:'English'},
+      {id:3, title:'Handling Exam Stress', type:'Video', lang:'Hindi'},
+      {id:4, title:'Mindfulness Meditation', type:'Audio', lang:'English'},
+      {id:5, title:'Managing Anxiety', type:'Guide', lang:'Hindi'},
+      {id:6, title:'Building Resilience', type:'Video', lang:'Tamil'}
+    ];
+    
+    let currentResourceFilter = 'All';
+    
+    function renderResources(filter = currentResourceFilter){
+      currentResourceFilter = filter;
+      const list = document.getElementById('resourcesList');
+      list.innerHTML='';
+      
+      // Update filter buttons
+      document.querySelectorAll('.resources .chip').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      event.target.classList.add('selected');
+      
+      const filteredResources = resources.filter(r => filter==='All' || r.lang===filter);
+      
+      if (filteredResources.length === 0) {
+        list.innerHTML = '<div class="muted center" style="padding: 20px;">No resources available in this language</div>';
+        return;
+      }
+      
+      filteredResources.forEach(r=>{
+        const el = document.createElement('div'); 
+        el.className='resource-card';
+        el.innerHTML = `
+          <div class="thumb">${r.type[0]}</div>
+          <div style="flex:1">
+            <div style="font-weight:700">${escapeHtml(r.title)}</div>
+            <div class="muted" style="font-size:13px">${escapeHtml(r.lang)} • ${r.type}</div>
+          </div>
+          <div>
+            <button class="small-btn" onclick="showToast('Opening: ${escapeHtml(r.title)}')">Open</button>
+          </div>
+        `;
+        list.appendChild(el);
+      });
+    }
+    
+    function filterResources(lang){ 
+      renderResources(lang); 
+    }
+
+    /* ---------- Simple breathing overlay ---------- */
+    function showBreathing(){
+      appendBot("Let's try a 60-second breathing: inhale 4s, hold 4s, exhale 4s. Follow the animation.");
+      
+      // Simple UI injection
+      const c = document.getElementById('chatBody');
+      const el = document.createElement('div'); 
+      el.className='bubble bot';
+      el.innerHTML = `
+        <div style="font-weight:600; margin-bottom:6px;">Breathing Exercise</div>
+        <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+          <div id="breathCircle" style="width:120px; height:120px; border-radius:999px; background:linear-gradient(135deg, rgba(94,188,137,0.12), rgba(122,166,244,0.08)); display:flex; align-items:center; justify-content:center; font-weight:700;">Breathe In</div>
+          <div class="muted">Inhale 4s • Hold 4s • Exhale 4s</div>
+        </div>
+      `;
+      
+      c.appendChild(el); 
+      c.scrollTop = c.scrollHeight;
+      
+      // animate
+      const circ = el.querySelector('#breathCircle');
+      let step = 0;
+      const phases = [
+        {text: 'Breathe In', duration: 4000, scale: 1.4},
+        {text: 'Hold', duration: 4000, scale: 1.4},
+        {text: 'Breathe Out', duration: 4000, scale: 1}
+      ];
+      
+      function animateBreath() {
+        if (step >= 9) {
+          circ.parentElement.parentElement.remove();
+          appendBot('Nice — how do you feel now?');
+          return;
+        }
+        
+        const phase = phases[step % 3];
+        circ.textContent = phase.text;
+        
+        // Smooth scale animation
+        circ.style.transition = `transform ${phase.duration}ms ease-in-out`;
+        circ.style.transform = `scale(${phase.scale})`;
+        
+        setTimeout(() => {
+          step++;
+          animateBreath();
+        }, phase.duration);
+      }
+      
+      animateBreath();
+    }
+
+    /* ---------- Helpers ---------- */
+    function escapeHtml(unsafe) {
+      return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+    
+    // Init on load
+    document.addEventListener('DOMContentLoaded', ()=> {
+      document.getElementById('aliasInput').value = randomAlias();
+      
+      // keyboard send
+      document.getElementById('chatInput').addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter'){ 
+          e.preventDefault(); 
+          sendUserFromInput(); 
+        }
+      });
+      
+      // Initialize resources with All filter
+      renderResources('All');
+    });
+  </script>
+</body>
+</html>
